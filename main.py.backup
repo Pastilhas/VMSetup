@@ -1,1 +1,1 @@
-{"uid": 2, "machines": {"vm1": {"gpus": [], "storage": []}}, "gpus": {}, "storage": {}}
+{"uid": 4, "machines": {"vm1": {"gpus": [], "storage": []}, "vm2": {"gpus": [], "storage": []}, "vm3": {"gpus": [], "storage": []}}, "gpus": {}, "storage": {}}
