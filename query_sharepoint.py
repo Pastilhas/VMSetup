@@ -18,7 +18,7 @@ PARSED_IDS:dict = {}
 def isToday(date:str) -> bool: return datetime.strptime(date,'%Y-%m-%dT%H:%M:%SZ').date() == datetime.today().date()
 def isYeste(date:str) -> bool: return datetime.strptime(date,'%Y-%m-%dT%H:%M:%SZ').date() == datetime.today().date() - timedelta(days=1)
 
-with open('/home/inegi/VMSetup/sharepoint_query.py.backup','r') as read_file:
+with open('/home/inegi/VMSetup/query_sharepoint.py.backup','r') as read_file:
     PARSED_IDS = json.load(read_file)
 
 while True:
@@ -59,11 +59,9 @@ while True:
             })
             PARSED_IDS[id] = { 'name':name, 'destroyed':True }
 
-        with open('/home/inegi/VMSetup/sharepoint_query.py.backup','w') as write_file:
-            json.dump(PARSED_IDS, write_file)
+        with open('/home/inegi/VMSetup/query_sharepoint.py.backup','w') as write_file:
+            json.dump(PARSED_IDS,write_file)
 
     except Exception as ex:
         print(f'Error {ex}')
         break
-
-
