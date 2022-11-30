@@ -33,6 +33,7 @@ while True:
         active_items = [i.properties for i in sp_items if i.properties['Active']]
         new_items = [i for i in active_items if isToday(i['From']) and i['ID'] not in PARSED_IDS]
         old_items = [i for i in active_items if isYesterday(i['To']) and i['ID'] in PARSED_IDS]
+        old_items = [i for i in old_items if not PARSED_IDS[i['ID']]['destroyed']]
 
         for i in new_items:
             name = create_machine(i['RAM_x0028_32GB_x0029_'] * 32, i['GPUS'] * 4, i['GPUS'], i['Storage_x0028_2TB_x0029_'])
