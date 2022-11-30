@@ -1,5 +1,5 @@
-*.iso
-*.qcow2
-*.out
-*.backup
-
+**/*.iso
+**/*.qcow2
+**/*.out
+**/*.backup
+**/defines.py
