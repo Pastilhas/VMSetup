@@ -25,6 +25,25 @@ def isToday(date: str) -> bool: return datetime.strptime(date, '%Y-%m-%dT%H:%M:%
 def isYesterday(date: str) -> bool: return datetime.strptime(date, '%Y-%m-%dT%H:%M:%SZ').date() == datetime.today().date() - timedelta(days=1)
 
 
+def send_mail(userid: str, subject: str, body: str):
+    user = ctx.web.site_users.filter(f'Id eq {userid}')
+    ctx.load(user)
+    ctx.execute_query()
+    user = user[0].properties if len(user) > 0 else None
+
+    if user is not None:
+        mimemsg = MIMEMultipart()
+        mimemsg['From'] = SP_USER
+        mimemsg['To'] = user['Email']
+        mimemsg['Subject'] = subject
+        mimemsg.attach(MIMEText(body, 'plain'))
+        connection = smtplib.SMTP(host='smtp.office365.com', port=587)
+        connection.starttls()
+        connection.login(SP_USER, SP_PASS)
+        connection.send_message(mimemsg)
+        connection.quit()
+
+
 while True:
     sleep(10)
     try:
@@ -40,28 +59,27 @@ while True:
 
         for i in new_items:
             name = create_machine(i['RAM_x0028_32GB_x0029_'] * 32, i['GPUS'] * 4, i['GPUS'], i['Storage_x0028_2TB_x0029_'])
-            PARSED_IDS[i['ID']] = { 'name': name, 'destroyed': False }
+            PARSED_IDS[i['ID']] = {'name': name, 'destroyed': False}
             vncdisplay = '192.168.190.190:' + get_vnc(name)
 
-            mail_body = f"Your request of {i['Title']} from {i['From']} to {i['To']} was accepted\n\
-                To access the virtual machine, use a VNC client and connect to {vncdisplay}\n\
-                        Login: vm           Password: vm" 
-
-            mimemsg = MIMEMultipart()
-            mimemsg['From'] = SP_USER
-            mimemsg['To'] = i['User']['Email']
-            mimemsg['Subject'] = 'Request accepted'
-            mimemsg.attach(MIMEText(mail_body, 'plain'))
-            connection = smtplib.SMTP(host='smtp.office365.com', port=587)
-            connection.starttls()
-            connection.login(SP_USER,SP_PASS)
-            connection.send_message(mimemsg)
-            connection.quit()
+            send_mail(i["UserId"], 'Request accepted', f'''
+Your request of {i["Title"]} from {datetime.strptime(i['From'], '%Y-%m-%dT%H:%M:%SZ').date()} to {datetime.strptime(i['To'], '%Y-%m-%dT%H:%M:%SZ').date()} was accepted
+To access the virtual machine:
+Use a VNC client
+Connect to {vncdisplay}
+Login: vm
+Password: vm
+''')
 
         for i in old_items:
             name = PARSED_IDS[i['ID']]['name']
             destroy_machine(name)
-            PARSED_IDS[i['ID']] = { 'name': name, 'destroyed': True }
+            PARSED_IDS[i['ID']] = {'name': name, 'destroyed': True}
+            
+            send_mail(i["UserId"], 'End of reservation', f'''
+Your reservation of {i["Title"]} from {datetime.strptime(i['From'], '%Y-%m-%dT%H:%M:%SZ').date()} to {datetime.strptime(i['To'], '%Y-%m-%dT%H:%M:%SZ').date()} has ended.
+Access to the virtual machine was revoked.
+''')
 
         if len(new_items) + len(old_items) > 0:
             with open(QURY_BKP, 'w') as file:
