@@ -3,8 +3,11 @@ import json
 from datetime import datetime, timezone, timedelta
 from office365.runtime.auth.user_credential import UserCredential
 from office365.sharepoint.client_context import ClientContext
+import smtplib
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
 from defines import SP_USER, SP_PASS, QURY_BKP
-from main import create_machine,destroy_machine
+from main import create_machine, destroy_machine, get_vnc
 
 
 PREFIX = 'inegiuppt'
@@ -38,6 +41,22 @@ while True:
         for i in new_items:
             name = create_machine(i['RAM_x0028_32GB_x0029_'] * 32, i['GPUS'] * 4, i['GPUS'], i['Storage_x0028_2TB_x0029_'])
             PARSED_IDS[i['ID']] = { 'name': name, 'destroyed': False }
+            vncdisplay = '192.168.190.190:' + get_vnc(name)
+
+            mail_body = f"Your request of {i['Title']} from {i['From']} to {i['To']} was accepted\n\
+                To access the virtual machine, use a VNC client and connect to {vncdisplay}\n\
+                        Login: vm           Password: vm" 
+
+            mimemsg = MIMEMultipart()
+            mimemsg['From'] = SP_USER
+            mimemsg['To'] = i['User']['Email']
+            mimemsg['Subject'] = 'Request accepted'
+            mimemsg.attach(MIMEText(mail_body, 'plain'))
+            connection = smtplib.SMTP(host='smtp.office365.com', port=587)
+            connection.starttls()
+            connection.login(SP_USER,SP_PASS)
+            connection.send_message(mimemsg)
+            connection.quit()
 
         for i in old_items:
             name = PARSED_IDS[i['ID']]['name']

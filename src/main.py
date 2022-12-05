@@ -67,3 +67,7 @@ def destroy_machine(name: str) -> None:
     subprocess.run(f'virsh undefine {name}', shell=True)
     subprocess.run(f'rm /var/lib/libvirt/images/{name}.qcow2', shell=True)
     update_file()
+
+def get_vnc(name: str) -> str:
+    p = subprocess.run(f'virsh vncdisplay {name}', shell=True, capture_output=True)
+    return str(5900 + int(p.stdout.decode(encoding='utf-8')[1:]))
