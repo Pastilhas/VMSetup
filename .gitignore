@@ -1,5 +1,7 @@
 **/*.iso
 **/*.qcow2
 **/*.out
+**/main.py.backup
 **/*.backup
 **/defines.py
+**/__pycache__

@@ -62,7 +62,6 @@ while True:
             name = create_machine(i['RAM_x0028_32GB_x0029_'] * 32, i['GPUS'] * 4, i['GPUS'], i['Storage_x0028_2TB_x0029_'])
             PARSED_IDS[i['ID']] = {'name': name, 'destroyed': False}
             vncdisplay = '192.168.190.190:' + get_vnc(name)
-
             send_mail(i["UserId"], 'Request accepted', f'''
 Your request of {i["Title"]} from {datetime.strptime(i['From'], '%Y-%m-%dT%H:%M:%SZ').date()} to {datetime.strptime(i['To'], '%Y-%m-%dT%H:%M:%SZ').date()} was accepted
 To access the virtual machine:
@@ -76,7 +75,6 @@ Password: vm
             name = PARSED_IDS[i['ID']]['name']
             destroy_machine(name)
             PARSED_IDS[i['ID']] = {'name': name, 'destroyed': True}
-            
             send_mail(i["UserId"], 'End of reservation', f'''
 Your reservation of {i["Title"]} from {datetime.strptime(i['From'], '%Y-%m-%dT%H:%M:%SZ').date()} to {datetime.strptime(i['To'], '%Y-%m-%dT%H:%M:%SZ').date()} has ended.
 Access to the virtual machine was revoked.
@@ -88,4 +86,3 @@ Access to the virtual machine was revoked.
 
     except Exception as ex:
         print(f'Error {ex}')
-        break
