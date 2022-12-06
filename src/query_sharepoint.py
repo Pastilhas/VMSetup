@@ -53,6 +53,7 @@ while True:
         ctx.load(sp_items)
         ctx.execute_query()
         active_items = [i.properties for i in sp_items if i.properties['Active']]
+        for i in range(len(active_items)): active_items[i]['ID'] = str(active_items[i]['ID'])
         new_items = [i for i in active_items if isToday(i['From']) and i['ID'] not in PARSED_IDS]
         old_items = [i for i in active_items if isYesterday(i['To']) and i['ID'] in PARSED_IDS]
         old_items = [i for i in old_items if not PARSED_IDS[i['ID']]['destroyed']]
