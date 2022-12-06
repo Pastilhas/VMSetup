@@ -1,8 +1,10 @@
 import subprocess
 import json
+import string
+import secrets
 from defines import MAIN_BKP, QCOW_ORG
 
-
+ALPHB = string.ascii_letters + string.digits
 UID: int = 1
 MACHINES: dict = {}
 GPUS: dict = {}
@@ -35,12 +37,13 @@ def create_machine(ram: int, cpus: int, gpus: int, storage: int) -> str:
     global UID, MACHINES, GPUS, STORAGE
     machine = {'gpus': [], 'storage': []}
     vmid = f'vm{UID}'
+    password = generate_password()
     subprocess.run(
         f'cp {QCOW_ORG} /var/lib/libvirt/images/{vmid}.qcow2', shell=True)
     subprocess.run(
         f'virt-install --name {vmid} --virt-type kvm --hvm --memory {ram * 1024} \
         --vcpus {cpus} --disk /var/lib/libvirt/images/{vmid}.qcow2,format=qcow2 \
-        --network network=default --graphics vnc,listen=0.0.0.0 \
+        --network network=default --graphics vnc,listen=0.0.0.0,password={password} \
         --noautoconsole --os-variant=ubuntu20.04 --import', shell=True)
 
     used_gpus = attach_devices(GPUS, gpus, vmid)
@@ -56,7 +59,7 @@ def create_machine(ram: int, cpus: int, gpus: int, storage: int) -> str:
     UID = UID + 1
     MACHINES[vmid] = machine
     update_file()
-    return vmid
+    return vmid, password
 
 
 def destroy_machine(name: str) -> None:
@@ -74,3 +77,8 @@ def get_vnc(name: str) -> str:
     p = subprocess.run(f'virsh vncdisplay {name}', shell=True, capture_output=True)
     res = int(p.stdout.decode(encoding='utf-8').strip()[1:])
     return str(5900 + res)
+
+
+def generate_password() -> str:
+    global ALPHB
+    return ''.join(secrets.choice(ALPHB) for i in range(8))

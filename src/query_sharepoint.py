@@ -59,14 +59,14 @@ while True:
         old_items = [i for i in old_items if not PARSED_IDS[i['ID']]['destroyed']]
 
         for i in new_items:
-            name = create_machine(i['RAM_x0028_32GB_x0029_'] * 32, i['GPUS'] * 4, i['GPUS'], i['Storage_x0028_2TB_x0029_'])
+            name, password = create_machine(i['RAM_x0028_32GB_x0029_'] * 32, i['GPUS'] * 4, i['GPUS'], i['Storage_x0028_2TB_x0029_'])
             PARSED_IDS[i['ID']] = {'name': name, 'destroyed': False}
             vncdisplay = '192.168.190.190:' + get_vnc(name)
             send_mail(i["UserId"], 'Request accepted', f'''
 Your request of {i["Title"]} from {datetime.strptime(i['From'], '%Y-%m-%dT%H:%M:%SZ').date()} to {datetime.strptime(i['To'], '%Y-%m-%dT%H:%M:%SZ').date()} was accepted
 To access the virtual machine:
 Use a VNC client
-Connect to {vncdisplay}
+Connect to {vncdisplay} with password {password}
 Login: vm
 Password: vm
 ''')
