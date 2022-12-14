@@ -21,8 +21,17 @@ with open(QURY_BKP, 'r') as file:
     PARSED_IDS = json.load(file)
 
 
-def isToday(date: str) -> bool: return datetime.strptime(date, '%Y-%m-%dT%H:%M:%SZ').date() == datetime.today().date()
-def isYesterday(date: str) -> bool: return datetime.strptime(date, '%Y-%m-%dT%H:%M:%SZ').date() == datetime.today().date() - timedelta(days=1)
+def isCreate(dateFrom: str, dateTo: str) -> bool:
+    d1 = datetime.strptime(dateFrom, '%Y-%m-%dT%H:%M:%SZ').date()
+    d2 = datetime.strptime(dateTo, '%Y-%m-%dT%H:%M:%SZ').date()
+    t = datetime.today().date()
+    return d1 >= t and t <= d2
+
+
+def isDestroy(dateTo: str) -> bool:
+    d1 = datetime.strptime(dateTo, '%Y-%m-%dT%H:%M:%SZ').date()
+    t = datetime.today().date()
+    return d1 > t
 
 
 def send_mail(userid: str, subject: str, body: str):
@@ -54,8 +63,8 @@ while True:
         ctx.execute_query()
         active_items = [i.properties for i in sp_items if i.properties['Active']]
         for i in range(len(active_items)): active_items[i]['ID'] = str(active_items[i]['ID'])
-        new_items = [i for i in active_items if isToday(i['From']) and i['ID'] not in PARSED_IDS]
-        old_items = [i for i in active_items if isYesterday(i['To']) and i['ID'] in PARSED_IDS]
+        new_items = [i for i in active_items if isCreate(i['From'], i['To']) and i['ID'] not in PARSED_IDS]
+        old_items = [i for i in active_items if isDestroy(i['To']) and i['ID'] in PARSED_IDS]
         old_items = [i for i in old_items if not PARSED_IDS[i['ID']]['destroyed']]
 
         for i in new_items:
